@@ -8,6 +8,14 @@ HEIGHT = 600
 FPS = 100
 
 
+class Background(pygame.sprite.Sprite):
+    def __init__(self, image_file, location):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load(image_file)
+        self.rect = self.image.get_rect()
+        self.rect.left, self.rect.top = location
+
+
 def start_screen():
     intro_text = ["ЗАСТАВКА", "",
                   "Правила игры",
@@ -113,6 +121,7 @@ Color = (255, 255, 255)
 degree = 0
 score = 0
 dead_bugs = 0
+BackGround = Background('screen.jpg', [0, 0])
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.init()
@@ -143,6 +152,7 @@ while running:
     pygame.time.delay(5)
 
     screen.fill(Color)
+    screen.blit(BackGround.image, BackGround.rect)
     screen.blit(INSECT.shablon, (INSECT.rect_x, INSECT.rect_y))
     pygame.display.update()
 
