@@ -1,12 +1,28 @@
 import pygame
 import random
 from math import *
+import os
 
 clock = pygame.time.Clock()
 WIDTH = 800
 HEIGHT = 600
 FPS = 100
 
+def load_image(name, color_key=None):
+    fullname = os.path.join(name)
+    try:
+        image = pygame.image.load(fullname).convert()
+    except pygame.error as message:
+        print('Cannot load image:', name)
+        raise SystemExit(message)
+
+    if color_key is not None:
+        if color_key == -1:
+            color_key = image.get_at((0, 0))
+        image.set_colorkey(color_key)
+    else:
+        image = image.convert_alpha()
+    return image
 
 def start_screen():
     intro_text = ["ЗАСТАВКА", "",
@@ -103,6 +119,13 @@ start_screen()
 pygame.key.set_repeat(20, 20)
 pygame.display.set_caption("BugHunter")
 INSECT = Insect(random.randint(0, HEIGHT - 60), 0)
+cursor_image = load_image("tapok.jpg", -1)
+cursor = pygame.sprite.Sprite(all_sprites)
+cursor.image = cursor_image
+cursor.rect = cursor.image.get_rect()
+
+# скрываем системный курсор
+pygame.mouse.set_visible(False)
 
 running = True
 while running:
@@ -114,6 +137,13 @@ while running:
             if event_x > INSECT.rect_x and event_x < INSECT.rect_x + 60 \
                     and event_y > INSECT.rect_y and event_y < INSECT.rect_y + 60:
                 INSECT.destroy()
+        elif event.type == pygame.MOUSEMOTION:
+            # изменяем положение спрайта-стрелки
+            cursor.rect.topleft = event.pos
+    if pygame.mouse.get_focused():
+        all_sprites.draw(screen)
+    pygame.display.flip()
+
 
     update()
 
