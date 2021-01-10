@@ -43,6 +43,7 @@ class Insect(pygame.sprite.Sprite):
         self.shablon = self.image = pygame.image.load(random.choice(bugs))
         self.rect_x = rect_x
         self.rect_y = rect_y
+        self.steps = 0
 
         self.vx = random.randint(0, 2)
         if self.vx == 0:
@@ -58,11 +59,25 @@ class Insect(pygame.sprite.Sprite):
     def step(self, x, y):
         self.rect_x += x
         self.rect_y += y
+        self.steps += 1
 
     def destroy(self):
-        self.shablon = self.image = pygame.image.load("dead.png")
+        global dead_bugs, score
+        if score > 40000:
+            return
+        dead_bugs += 1
+        score += 100 / self.steps * 2
         pygame.time.delay(2000)
-        self.shablon = self.image = pygame.image.load(random.choice(bugs))
+        if score > 40000:
+            self.shablon = self.image = pygame.image.load("dead.png")
+            new_bug()
+            return
+        if dead_bugs % 20 == 0:
+            self.shablon = self.image = pygame.image.load('gold_insect.jpg')
+            score += 100 / self.steps * 2
+        else:
+            self.shablon = self.image = pygame.image.load(random.choice(bugs))
+        self.steps = 0
         new_bug()
 
 
@@ -96,6 +111,8 @@ bugs = ["insect.jpg", "insect1.jpg", "insect2.jpg", "insect3.jpg", "insect4.jpg"
         "insect7.jpg", "insect8.jpg", "insect9.jpg"]
 Color = (255, 255, 255)
 degree = 0
+score = 0
+dead_bugs = 0
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.init()
