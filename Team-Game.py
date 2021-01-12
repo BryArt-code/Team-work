@@ -1,11 +1,37 @@
 import pygame
 import random
 from math import *
+import os
 
 clock = pygame.time.Clock()
 WIDTH = 800
 HEIGHT = 600
 FPS = 100
+
+
+def load_image(name, color_key=None):
+    fullname = os.path.join(name)
+    try:
+        image = pygame.image.load(fullname).convert()
+    except pygame.error as message:
+        print('Cannot load image:', name)
+        raise SystemExit(message)
+
+    if color_key is not None:
+        if color_key == -1:
+            color_key = image.get_at((0, 0))
+        image.set_colorkey(color_key)
+    else:
+        image = image.convert_alpha()
+    return image
+
+
+class Background(pygame.sprite.Sprite):
+    def __init__(self, image_file, location):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load(image_file)
+        self.rect = self.image.get_rect()
+        self.rect.left, self.rect.top = location
 
 
 def start_screen():
@@ -43,6 +69,7 @@ class Insect(pygame.sprite.Sprite):
         self.shablon = self.image = pygame.image.load(random.choice(bugs))
         self.rect_x = rect_x
         self.rect_y = rect_y
+        self.steps = 0
 
         self.vx = random.randint(0, 2)
         if self.vx == 0:
@@ -58,11 +85,25 @@ class Insect(pygame.sprite.Sprite):
     def step(self, x, y):
         self.rect_x += x
         self.rect_y += y
+        self.steps += 1
 
     def destroy(self):
-        self.shablon = self.image = pygame.image.load("dead.png")
+        global dead_bugs, score
+        if score > 40000:
+            return
+        dead_bugs += 1
+        score += 100 / self.steps * 2
         pygame.time.delay(2000)
-        self.shablon = self.image = pygame.image.load(random.choice(bugs))
+        if score > 40000:
+            self.shablon = self.image = pygame.image.load("dead.png")
+            new_bug()
+            return
+        if dead_bugs % 20 == 0:
+            self.shablon = self.image = pygame.image.load('gold_insect.jpg')
+            score += 100 / self.steps * 2
+        else:
+            self.shablon = self.image = pygame.image.load(random.choice(bugs))
+        self.steps = 0
         new_bug()
 
 
@@ -96,6 +137,9 @@ bugs = ["insect.jpg", "insect1.jpg", "insect2.jpg", "insect3.jpg", "insect4.jpg"
         "insect7.jpg", "insect8.jpg", "insect9.jpg"]
 Color = (255, 255, 255)
 degree = 0
+score = 4999
+dead_bugs = 0
+BackGround = Background('screen.jpg', [0, 0])
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.init()
@@ -103,6 +147,13 @@ start_screen()
 pygame.key.set_repeat(20, 20)
 pygame.display.set_caption("BugHunter")
 INSECT = Insect(random.randint(0, HEIGHT - 60), 0)
+cursor_image = load_image("tapok.jpg", -1)
+cursor = pygame.sprite.Sprite(all_sprites)
+cursor.image = cursor_image
+cursor.rect = cursor.image.get_rect()
+
+# скрываем системный курсор
+pygame.mouse.set_visible(False)
 
 running = True
 while running:
@@ -114,6 +165,13 @@ while running:
             if event_x > INSECT.rect_x and event_x < INSECT.rect_x + 60 \
                     and event_y > INSECT.rect_y and event_y < INSECT.rect_y + 60:
                 INSECT.destroy()
+        elif event.type == pygame.MOUSEMOTION:
+            # изменяем положение спрайта-стрелки
+            cursor.rect.topleft = event.pos
+
+        if pygame.mouse.get_focused():
+            all_sprites.draw(screen)
+        pygame.display.flip()
 
     update()
 
@@ -126,6 +184,7 @@ while running:
     pygame.time.delay(5)
 
     screen.fill(Color)
+    screen.blit(BackGround.image, BackGround.rect)
     screen.blit(INSECT.shablon, (INSECT.rect_x, INSECT.rect_y))
     pygame.display.update()
 
