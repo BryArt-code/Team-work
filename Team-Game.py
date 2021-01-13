@@ -1,12 +1,31 @@
 import pygame
 import random
 from math import *
+from PyQt5.QtWidgets import *
 import os
+from pygame.locals import *
+from PyQt5 import uic  # Импортируем uic
+import sys
 
 clock = pygame.time.Clock()
 WIDTH = 800
 HEIGHT = 600
 FPS = 100
+
+
+class MainWindow(QMainWindow):
+    def __init__(self, *args):
+        super().__init__()
+        self.initUI(args)
+
+    def initUI(self, args):
+        uic.loadUi('form.ui', self)
+        global score
+        self.lineEdit.setText(f'{score}')
+        self.lineEdit.setReadOnly(True)
+        global dead_bugs
+        self.lineEdit_2.setText(f'{dead_bugs}')
+        self.lineEdit_2.setReadOnly(True)
 
 
 def load_image(name, color_key=None):
@@ -39,7 +58,6 @@ def start_screen():
                   "Правила игры",
                   "Убей как можно больше жуков",
                   "Не дай жукам скрыться из виду"]
-
     fon = pygame.transform.scale(pygame.image.load('fon.jpg'), (WIDTH, HEIGHT))
     screen.blit(fon, (0, 0))
     font = pygame.font.Font(None, 30)
@@ -52,7 +70,6 @@ def start_screen():
         intro_rect.x = 10
         text_coord += intro_rect.height
         screen.blit(string_rendered, intro_rect)
-
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -108,7 +125,10 @@ class Insect(pygame.sprite.Sprite):
 
 
 def end():
-    exit()
+    app = QApplication(sys.argv)
+    ex = MainWindow()
+    ex.show()
+    sys.exit(app.exec_())
 
 
 # Функция изменяет направление движения жука, если они бьются об стену
@@ -137,7 +157,7 @@ bugs = ["insect.jpg", "insect1.jpg", "insect2.jpg", "insect3.jpg", "insect4.jpg"
         "insect7.jpg", "insect8.jpg", "insect9.jpg"]
 Color = (255, 255, 255)
 degree = 0
-score = 4999
+score = 0
 dead_bugs = 0
 BackGround = Background('screen.jpg', [0, 0])
 
@@ -154,12 +174,18 @@ cursor.rect = cursor.image.get_rect()
 
 # скрываем системный курсор
 pygame.mouse.set_visible(False)
+paused = False
 
 running = True
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_p:  # Pausing
+                paused = True
+            if event.key == pygame.K_u:  # Unpausing
+                paused = False
         elif event.type == pygame.MOUSEBUTTONDOWN:
             event_x, event_y = pygame.mouse.get_pos()
             if event_x > INSECT.rect_x and event_x < INSECT.rect_x + 60 \
@@ -168,6 +194,11 @@ while running:
         elif event.type == pygame.MOUSEMOTION:
             # изменяем положение спрайта-стрелки
             cursor.rect.topleft = event.pos
+        elif paused == True:
+            pygame.time.delay(3000)
+        elif paused == False:
+            pygame.time.delay(0)
+            continue
 
         if pygame.mouse.get_focused():
             all_sprites.draw(screen)
