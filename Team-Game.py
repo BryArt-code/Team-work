@@ -2,12 +2,31 @@ import pygame
 import random
 from math import *
 import os
+from PyQt5.QtWidgets import *
 from pygame.locals import *
+from PyQt5 import uic  # Импортируем uic
+import sys
 
 clock = pygame.time.Clock()
 WIDTH = 800
 HEIGHT = 600
 FPS = 100
+count1 = 0
+count2 = 0
+
+class MainWindow(QMainWindow):
+    def __init__(self, *args):
+        super().__init__()
+        self.initUI(args)
+
+    def initUI(self, args):
+        uic.loadUi('form.ui', self)
+        global count1
+        self.lineEdit.setText(f'{count1}')
+        self.lineEdit.setReadOnly(True)
+        global count2
+        self.lineEdit_2.setText(f'{count2}')
+        self.lineEdit_2.setReadOnly(True)
 
 
 def load_image(name, color_key=None):
@@ -85,10 +104,17 @@ class Insect(pygame.sprite.Sprite):
         pygame.time.delay(2000)
         self.shablon = self.image = pygame.image.load(random.choice(bugs))
         new_bug()
+        global count1
+        count1 += 100
+        global count2
+        count2 += 1
 
 
 def end():
-    exit()
+    app = QApplication(sys.argv)
+    ex = MainWindow()
+    ex.show()
+    sys.exit(app.exec_())
 
 
 # Функция изменяет направление движения жука, если они бьются об стену
@@ -98,6 +124,7 @@ def update():
         INSECT.vx = -INSECT.vx
     if INSECT.rect_y > HEIGHT:
         end()
+
 
 
 # Функция меняет координаты текущего жука на начальные(но рандомные)
