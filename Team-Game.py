@@ -2,11 +2,13 @@ import pygame
 import random
 from math import *
 import os
+from pygame.locals import *
 
 clock = pygame.time.Clock()
 WIDTH = 800
 HEIGHT = 600
 FPS = 100
+
 
 def load_image(name, color_key=None):
     fullname = os.path.join(name)
@@ -24,11 +26,14 @@ def load_image(name, color_key=None):
         image = image.convert_alpha()
     return image
 
+
 def start_screen():
     intro_text = ["ЗАСТАВКА", "",
                   "Правила игры",
                   "Убей как можно больше жуков",
-                  "Не дай жукам скрыться из виду"]
+                  "Не дай жукам скрыться из виду",
+                  "Чтобы поставить на паузу нажми p",
+                  "Чтобы продолжить игру нажми u"]
 
     fon = pygame.transform.scale(pygame.image.load('fon.jpg'), (WIDTH, HEIGHT))
     screen.blit(fon, (0, 0))
@@ -126,12 +131,17 @@ cursor.rect = cursor.image.get_rect()
 
 # скрываем системный курсор
 pygame.mouse.set_visible(False)
-
+paused = False
 running = True
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_p:  # Pausing
+                paused = True
+            if event.key == pygame.K_u:  # Unpausing
+                paused = False
         elif event.type == pygame.MOUSEBUTTONDOWN:
             event_x, event_y = pygame.mouse.get_pos()
             if event_x > INSECT.rect_x and event_x < INSECT.rect_x + 60 \
@@ -140,6 +150,11 @@ while running:
         elif event.type == pygame.MOUSEMOTION:
             # изменяем положение спрайта-стрелки
             cursor.rect.topleft = event.pos
+        elif paused == True:
+            pygame.time.delay(3000)
+        elif paused == False:
+            pygame.time.delay(0)
+            continue
     if pygame.mouse.get_focused():
         all_sprites.draw(screen)
     pygame.display.flip()
